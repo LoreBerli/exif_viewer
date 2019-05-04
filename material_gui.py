@@ -7,23 +7,24 @@ import State
 import im_model
 from kivymd.bottomsheet import MDListBottomSheet, MDGridBottomSheet
 from kivymd.button import MDIconButton
-from kivymd.date_picker import MDDatePicker
+from kivy.uix.scatter import Scatter
 from kivy.uix.modalview import ModalView
 from kivymd.filemanager import MDFileManager
 import kivymd.toast
+from kivy.properties import StringProperty
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
 from kivymd.list import ILeftBody, ILeftBodyTouch, IRightBodyTouch, BaseListItem
 from kivymd.material_resources import DEVICE_TYPE
 from kivymd.navigationdrawer import MDNavigationDrawer, NavigationDrawerHeaderBase
 from kivymd.selectioncontrols import MDCheckbox
-from kivymd.snackbar import Snackbar
+from kivymd.snackbars import Snackbar
 from kivymd.theming import ThemeManager
-
-from kivymd.time_picker import MDTimePicker
+from kivy.core.window import Window
+from kivymd.pickers import MDTimePicker
 
 main_widget_kv = '''
-#:import Toolbar kivymd.toolbar.Toolbar
+#:import MDToolbar kivymd.toolbar.MDToolbar
 #:import ThemeManager kivymd.theming.ThemeManager
 #:import MDNavigationDrawer kivymd.navigationdrawer.MDNavigationDrawer
 #:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
@@ -41,12 +42,12 @@ main_widget_kv = '''
 #:import OneLineAvatarIconListItem kivymd.list.OneLineAvatarIconListItem
 #:import MDTextField kivymd.textfields.MDTextField
 #:import MDSpinner kivymd.spinner.MDSpinner
-#:import MDCard kivymd.card.MDCard
-#:import MDSeparator kivymd.card.MDSeparator
-#:import MDDropdownMenu kivymd.menu.MDDropdownMenu
+#:import MDCard kivymd.cards.MDCard
+#:import MDSeparator kivymd.cards.MDSeparator
+#:import MDDropdownMenu kivymd.menus.MDDropdownMenu
 #:import get_color_from_hex kivy.utils.get_color_from_hex
 #:import colors kivymd.color_definitions.colors
-#:import SmartTile kivymd.grid.SmartTile
+#:import SmartTile kivymd.imagelists.SmartTile
 #:import MDSlider kivymd.slider.MDSlider
 #:import MDTabbedPanel kivymd.tabs.MDTabbedPanel
 #:import MDTab kivymd.tabs.MDTab
@@ -54,9 +55,10 @@ main_widget_kv = '''
 #:import MDAccordion kivymd.accordion.MDAccordion
 #:import MDAccordionItem kivymd.accordion.MDAccordionItem
 #:import MDAccordionSubItem kivymd.accordion.MDAccordionSubItem
-#:import MDThemePicker kivymd.theme_picker.MDThemePicker
+#:import MDThemePicker kivymd.pickers.MDThemePicker
 #:import MDBottomNavigation kivymd.tabs.MDBottomNavigation
 #:import MDBottomNavigationItem kivymd.tabs.MDBottomNavigationItem
+#:import win kivy.core.window
 
 NavigationLayout:
     id: nav_layout
@@ -76,7 +78,7 @@ NavigationLayout:
         
     BoxLayout:
         orientation: 'vertical'
-        Toolbar:
+        MDToolbar:
             id: toolbar
             title: 'EXIF Viewer'
             md_bg_color: app.theme_cls.primary_color
@@ -88,21 +90,41 @@ NavigationLayout:
             id: scr_mngr
             
             Screen:
-                name: 'img'     
-                BoxLayout:
-                    size_hint: None, None
-                    size:     dp(640),dp(480)
-                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}     
-                    Image:
-                        id:imagde
-                        source:'autoencoder.png'
+                name: 'img'
+                
+                        
                 MDFloatingActionButton:
                     id:                    float_act_btn
                     icon:                'plus'
                     opposite_colors:    False
                     elevation_normal:    8
+                    
                     pos_hint:            {'center_x': 0.9, 'center_y': 0.1}
                     on_press:  app.file_manager_open()
+                
+                MDFloatingActionButton:
+                    id:                    rot_act_btn
+                    icon:                'rotate-left'
+                    opposite_colors:    False
+                    elevation_normal:    8
+                    
+                    pos_hint:            {'center_x': 0.7, 'center_y': 0.1}
+                    on_press:  app.rotate()  
+                            
+                BoxLayout:
+                    
+                    padding: 10
+                    spacing: 10
+                    size_hint: 1, None
+                    pos_hint: {'top': 1}
+                    height: 44    
+                    View_pic:
+                        id:imagde
+                        source:'photo_2018-10-10_18-05-50.jpg'
+
+
+
+                
             Screen:
                 name: 'file manager'
             
@@ -113,6 +135,8 @@ NavigationLayout:
                     opposite_colors: True
                     pos_hint: {'center_x': .5, 'center_y': .5}
                     on_release: app.file_manager_open()
+                    
+
                     
             Screen:
                 name: 'data'           
@@ -150,7 +174,28 @@ NavigationLayout:
                                 text: "diahane"
                             OneLineListItem:
                                 text: "diahane"
-            
+<View_pic>:
+    on_size: self.center = win.Window.center
+    size: image.size
+    size_hint: None, None
+    
+    Image:
+        id: image
+        source: root.source
+    
+        # create initial image to be 400 pixels width
+        size: 400, 400 / self.image_ratio
+    
+        # add shadow background
+        canvas.before:
+            Color:
+                rgba: 1,1,1,1
+            BorderImage:
+                source: 'shadow32.png'
+                border: (36,36,36,36)
+                size:(self.width+72, self.height+72)
+                pos: (-36,-36)
+
     
                     
 '''
@@ -190,11 +235,8 @@ class KitchenSink(App):
         self.theme_cls.accent_palette='Indigo'
         self.manager=None
         self.state = State.State()
-        #self.theme_cls.theme_style = 'Dark'
+        self.im = self.state.current_img
 
-        # main_widget.ids.text_field_error.bind(
-        #     on_text_validate=self.set_error_message,
-        #     on_focus=self.set_error_message)
         self.bottom_navigation_remove_mobile(main_widget)
         return main_widget
 
@@ -238,6 +280,10 @@ class KitchenSink(App):
         self.root.ids.scr_mngr.current = 'data'
         self.fill_exif()
         toast(path)
+
+    def rotate(self):
+        self.root.ids['imagde'].rotation=self.root.ids['imagde'].rotation+90
+
     def fill_exif(self):
         img=im_model.Img(self.state.current_img)
         dt=img.exif
@@ -281,6 +327,9 @@ class IconLeftSampleWidget(ILeftBodyTouch, MDIconButton):
 
 class IconRightSampleWidget(IRightBodyTouch, MDCheckbox):
     pass
+
+class View_pic(Scatter):
+    source = StringProperty(None)
 
 
 if __name__ == '__main__':

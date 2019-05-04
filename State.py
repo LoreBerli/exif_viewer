@@ -5,7 +5,7 @@ modes=["STD","COMPARE"]
 
 class State:
     def __init__(self):
-        self.cwd="/home/cioni/time_pics/"#"/home/cioni/uni/hci/exerc/kivy_lab/test_folder/"
+        self.cwd=os.getcwd()
         self.counter=0
         self.current_img=im_model.Img()
         self.other_img=im_model.Img()
