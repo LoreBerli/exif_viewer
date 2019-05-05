@@ -25,5 +25,4 @@ class Img:
             self.exif={"None":"None"}
 
 
-    def rotate(self):
-        self.im=self.im.rotate(90)
+

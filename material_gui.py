@@ -1,7 +1,7 @@
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.metrics import dp
-from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty, NumericProperty
 from kivy.uix.image import Image
 import State
 import im_model
@@ -91,7 +91,7 @@ NavigationLayout:
             
             Screen:
                 name: 'img'
-                
+
                         
                 MDFloatingActionButton:
                     id:                    float_act_btn
@@ -109,17 +109,13 @@ NavigationLayout:
                     elevation_normal:    8
                     
                     pos_hint:            {'center_x': 0.7, 'center_y': 0.1}
-                    on_press:  app.rotate()  
+                    on_press:  imagde.rota() 
                             
-                BoxLayout:
-                    
-                    padding: 10
-                    spacing: 10
-                    size_hint: 1, None
-                    pos_hint: {'top': 1}
-                    height: 44    
-                    View_pic:
-                        id:imagde
+                FloatLayout:
+
+                    View_pic: 
+                        id:imagde         
+                        size: self.parent.size
                         source:'photo_2018-10-10_18-05-50.jpg'
 
 
@@ -133,7 +129,7 @@ NavigationLayout:
                     size: 3 * dp(48), dp(48)
                     text: 'Open files manager'
                     opposite_colors: True
-                    pos_hint: {'center_x': .5, 'center_y': .5}
+                    pos_hint: {'center_x': .3, 'center_y': .5}
                     on_release: app.file_manager_open()
                     
 
@@ -142,6 +138,7 @@ NavigationLayout:
                 name: 'data'           
                 BoxLayout:
                     orientation: 'horizontal'
+
                     BoxLayout:
                         size_hint: None, None
                         size:     dp(320),dp(240)
@@ -149,59 +146,78 @@ NavigationLayout:
                         Image:
                             id:image
                             source:'autoencoder.png'
-                    ScrollView:
-                        do_scroll_x: False
-    
-                        MDList:
-                            id: ml
-    
-                            OneLineListItem:
-                                text: "diahane"
-                            OneLineListItem:
-                                text: "diahane"
-                            OneLineListItem:
-                                text: "diahane"
-                                    
-                            OneLineListItem:
-                                text: "diahane"
-                            OneLineListItem:
-                                text: "diahane"
-                            OneLineListItem:
-                                text: "diahane"
-                            OneLineListItem:
-                                text: "diahane"
-                            OneLineListItem:
-                                text: "diahane"
-                            OneLineListItem:
-                                text: "diahane"
+                    BoxLayout:
+                        padding:10
+                        orientation: 'vertical'
+                        ScrollView:
+                            size_hint: 1.0, 0.9
+                            do_scroll_x: False
+        
+                            MDList:
+                                id: ml
+        
+                                OneLineListItem:
+                                    text: "diahane"
+                                OneLineListItem:
+                                    text: "diahane"
+                                OneLineListItem:
+                                    text: "diahane"
+                                        
+                                OneLineListItem:
+                                    text: "diahane"
+                                OneLineListItem:
+                                    text: "diahane"
+                                OneLineListItem:
+                                    text: "diahane"
+                                OneLineListItem:
+                                    text: "diahane"
+                                OneLineListItem:
+                                    text: "diahane"
+                                OneLineListItem:
+                                    text: "diahane"
+                        MDFloatingActionButton:
+                            size_hint: None, None
+                            pos_hint: {'center_x': 0.9, 'center_y': 0.1}     
+                            id:                    float_act_btn2
+                            icon:                'plus'
+                            opposite_colors:    False
+                            elevation_normal:    8
+                            
+
+                            on_press:  app.file_manager_open()
 <View_pic>:
-    on_size: self.center = win.Window.center
-    size: image.size
+    auto_bring_to_front:False
+    do_scale: False
+    do_rotation:False
+    do_translation:False
+    
+
     size_hint: None, None
     
     Image:
-        id: image
-        source: root.source
-    
-        # create initial image to be 400 pixels width
-        size: 400, 400 / self.image_ratio
-    
-        # add shadow background
+        id: imag
+        on_size: self.center = win.Window.center
+
+        source : root.source
+        size: root.size[0]/2.0,root.size[0]/2.0
+        keep_ratio: True
+        allow_stretch: True
         canvas.before:
-            Color:
-                rgba: 1,1,1,1
-            BorderImage:
-                source: 'shadow32.png'
-                border: (36,36,36,36)
-                size:(self.width+72, self.height+72)
-                pos: (-36,-36)
+            PushMatrix
+            Rotate:
+                angle: root.angle
+                axis: 0, 0, 1
+                origin: self.center
+        canvas.after:
+            PopMatrix
+        
 
     
                     
 '''
 
 def toast(text):
-    # FIXME: crush with Python3.
+    # FIXME: crash with Python3.
     try:
         from kivymd.toast import toast
     except TypeError:
@@ -281,8 +297,8 @@ class KitchenSink(App):
         self.fill_exif()
         toast(path)
 
-    def rotate(self):
-        self.root.ids['imagde'].rotation=self.root.ids['imagde'].rotation+90
+    # def rotate(self):
+    #     self.root.ids['imagde'].rotation=self.root.ids['imagde'].rotation+10
 
     def fill_exif(self):
         img=im_model.Img(self.state.current_img)
@@ -330,7 +346,13 @@ class IconRightSampleWidget(IRightBodyTouch, MDCheckbox):
 
 class View_pic(Scatter):
     source = StringProperty(None)
-
+    angle = NumericProperty(0)
+    def __init__(self,**kwargs):
+        super(View_pic,self).__init__()
+        Scatter.auto_bring_to_front=False
+    def rota(self):
+        self.angle+=30
+        print(self.angle)
 
 if __name__ == '__main__':
     KitchenSink().run()
