@@ -14,7 +14,6 @@ class State:
         self.must_update=True
     def get_diff(self):
         diffs=[]
-
         for k in self.other_img.exif.keys():
             if(k not in self.current_img.exif.keys()):
                 diffs.append(k)
@@ -24,7 +23,7 @@ class State:
         return diffs
 
     def change_current(self,new_one):
-        self.current_img=new_one
+        self.current_img=im_model.Img(new_one)
         self.must_update=True
     def change_other(self,new_one):
         self.must_update = True
@@ -36,5 +35,5 @@ class State:
         self.counter += cnt
         self.must_update = True
         self.ims =[d for d in os.listdir(self.cwd) if d.endswith(".jpg")]
-        self.slide(im_model.Img(self.cwd+self.ims[self.counter%len(self.ims)]))
+        self.slide(self.cwd+self.ims[self.counter%len(self.ims)])
 
