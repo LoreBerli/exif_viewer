@@ -157,24 +157,8 @@ NavigationLayout:
                                 id: ml
         
                                 OneLineListItem:
-                                    text: "diahane"
-                                OneLineListItem:
-                                    text: "diahane"
-                                OneLineListItem:
-                                    text: "diahane"
-                                        
-                                OneLineListItem:
-                                    text: "diahane"
-                                OneLineListItem:
-                                    text: "diahane"
-                                OneLineListItem:
-                                    text: "diahane"
-                                OneLineListItem:
-                                    text: "diahane"
-                                OneLineListItem:
-                                    text: "diahane"
-                                OneLineListItem:
-                                    text: "diahane"
+                                    text: "Empty"
+
                         MDFloatingActionButton:
                             size_hint: None, None
                             pos_hint: {'center_x': 0.9, 'center_y': 0.1}     
@@ -224,10 +208,10 @@ def toast(text):
         from kivymd.toast.kivytoast import toast
     toast(text)
 
-class KitchenSink(App):
+class Exif_view(App):
     theme_cls = ThemeManager()
     previous_date = ObjectProperty()
-    title = "KivyMD Kitchen Sink"
+    title = "Exif_Viewer"
 
 
     menu_items = [
@@ -365,4 +349,4 @@ class View_pic(Scatter):
         print(self.angle)
 
 if __name__ == '__main__':
-    KitchenSink().run()
+    Exif_view().run()
