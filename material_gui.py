@@ -138,10 +138,10 @@ NavigationLayout:
                 name: 'data'           
                 BoxLayout:
                     orientation: 'horizontal'
-
+                    padding:10
                     BoxLayout:
-                        size_hint: None, None
-                        size:     dp(320),dp(240)
+                        size_hint: 0.4,0.4
+
                         pos_hint: {'center_x': 0.3, 'center_y': 0.5}     
                         Image:
                             id:image
@@ -229,6 +229,7 @@ class KitchenSink(App):
     previous_date = ObjectProperty()
     title = "KivyMD Kitchen Sink"
 
+
     menu_items = [
         {'viewclass': 'MDMenuItem',
          'text': 'Example item'},
@@ -252,9 +253,26 @@ class KitchenSink(App):
         self.manager=None
         self.state = State.State()
         self.im = self.state.current_img
+        keyboard = Window.request_keyboard(self._keyboard_released, self.root)
+        keyboard.bind(on_key_down=self._keyboard_on_key_down, on_key_up=self._keyboard_released)
 
         self.bottom_navigation_remove_mobile(main_widget)
+        toast("Click on the + botton to open a image")
         return main_widget
+
+    def _keyboard_released(self, window, keycode):
+        pass
+
+    def _keyboard_on_key_down(self, window, keycode, text, super):
+        if  keycode[1] == 'r':
+            self.root.ids['imagde'].rota()
+        if  keycode[1] == 'left':
+            self.state.roll(1)
+            self.change_image(self.state.current_img.path)
+        if  keycode[1] == 'right':
+            self.state.roll(-1)
+            self.change_image(self.state.current_img.path)
+
 
     def bottom_navigation_remove_mobile(self, widget):
         # Removes some items from bottom-navigation demo when on mobile
@@ -264,44 +282,36 @@ class KitchenSink(App):
             widget.ids.bottom_navigation_demo.remove_widget(widget.ids.bottom_navigation_desktop_1)
 
 
-
+    def change_image(self,path):
+        self.state.change_current(path)
+        self.root.ids['image'].source = self.state.current_img.path
+        self.root.ids['imagde'].source = self.state.current_img.path
+        self.state.must_update = True
+        self.fill_exif()
+        toast(path)
 
     def file_manager_open(self):
         import os
         if not self.manager:
             self.manager = ModalView(size_hint=(1, 1), auto_dismiss=False)
             self.file_manager = MDFileManager(
-                exit_manager=self.exit_manager, select_path=self.select_path)
+                exit_manager=self.exit_manager, select_path=self.select_path,ext=['.jpg','.jpeg'])
             self.manager.add_widget(self.file_manager)
             self.file_manager.show(os.getcwd())  # output manager to the screen
+        self.state.cwd=self.file_manager.current_path+"/"
         self.manager_open = True
         self.manager.open()
 
     def select_path(self, path):
-        """It will be called when you click on the file name
-        or the catalog selection button.
-
-        :type path: str;
-        :param path: path to the selected directory or file;
-
-        """
-        self.state.change_current(path)
-        print (self.root.ids)
-        self.root.ids['image'].source = path
-        self.root.ids['imagde'].source = path
-
-        self.state.must_update=True
-
+        self.change_image(path)
         self.exit_manager()
         self.root.ids.scr_mngr.current = 'data'
-        self.fill_exif()
-        toast(path)
 
-    # def rotate(self):
-    #     self.root.ids['imagde'].rotation=self.root.ids['imagde'].rotation+10
+
+
 
     def fill_exif(self):
-        img=im_model.Img(self.state.current_img)
+        img=self.state.current_img
         dt=img.exif
         self.root.ids['ml'].clear_widgets()
         for v in dt:
